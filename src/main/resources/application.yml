@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show_sql: true
+    use_sql_comments: true
+    format_sql: true
+  datasource:
+    url: jdbc:mysql://172.17.0.1:3306/trivago
+    username: trivago
+    password: trivago123
