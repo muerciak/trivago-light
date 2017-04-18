@@ -34,8 +34,7 @@ public class SearchAvailableHotelRoomController {
                                              @RequestParam("dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
                                              @RequestParam("city") Optional<String> city) {
 
-
-        List<Room> list = searchAvailableRoomRepository.findAvailableRooms(dateFrom, dateTo);
+        List<Room> list = searchAvailableRoomRepository.findAvailableRoomsAndPriceRangeAndCity(dateFrom, dateTo, city, priceFrom, priceTo);
         return list
                 .stream()
                 .map(roomAssembler::dto)

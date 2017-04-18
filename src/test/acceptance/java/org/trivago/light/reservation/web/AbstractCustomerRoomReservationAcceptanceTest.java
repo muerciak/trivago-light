@@ -9,19 +9,21 @@ import org.trivago.light.customer.dto.CustomerDto;
 import org.trivago.light.hotel.dto.HotelDto;
 import org.trivago.light.hotel.dto.RoomDto;
 
+import java.math.BigDecimal;
+
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 
 public class AbstractCustomerRoomReservationAcceptanceTest extends AbstractAcceptanceTest {
 
     protected void addRoom(Long hotelId) throws JsonProcessingException {
-        RoomDto roomDto = RoomDto.builder().floor(1).name("1").size(2).hotelId(hotelId).build();
+        RoomDto roomDto = RoomDto.builder().floor(1).name("1").size(2).price(new BigDecimal(4.5)).build();
 
         given()
                 .body(objectMapper.writeValueAsString(roomDto))
                 .contentType(ContentType.JSON)
                 .when()
-                .post("/hotel/room");
+                .post("/hotel/" + hotelId + "/room");
     }
 
     protected Integer addHotel() throws JsonProcessingException {

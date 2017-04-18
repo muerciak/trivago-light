@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.trivago.light.application.domain.Entity;
-import org.trivago.light.application.dto.EntityDto;
 import org.trivago.light.hotel.assembler.HotelAssembler;
 import org.trivago.light.hotel.assembler.RoomAssembler;
 import org.trivago.light.hotel.domain.Hotel;
@@ -20,7 +19,7 @@ import org.trivago.light.hotel.dto.HotelDto;
 import org.trivago.light.hotel.dto.RoomDto;
 import org.trivago.light.hotel.repository.HotelRepository;
 import org.trivago.light.hotel.web.exception.HotelEntityNotFoundException;
-import org.trivago.light.hotel.web.exception.RoomEntityNotFoundException;
+import org.trivago.light.hotel.web.exception.StatusNotFoundException;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
@@ -50,12 +49,12 @@ public class HotelController {
     }
 
     @RequestMapping(value = "/{hotelId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public EntityDto getHotelId(@PathVariable Long hotelId) {
+    public HotelDto getHotel(@PathVariable Long hotelId) {
         Optional<Hotel> hotel = hotelRepository.findOne(hotelId);
         if (!hotel.isPresent()) {
             throw new HotelEntityNotFoundException(hotelId);
         }
-        return new EntityDto(hotel.get().getId());
+        return hotelAssembler.dto(hotel.get());
     }
 
     private ResponseEntity<Void> returnResultPost(UriComponentsBuilder uriComponentsBuilder, Entity entity) {
@@ -65,27 +64,27 @@ public class HotelController {
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
-    @RequestMapping(value = "/room", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/{hotelId}/room", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public void registerRoom(@Valid @RequestBody RoomDto roomDto) {
+    public void registerRoom(@Valid @RequestBody RoomDto roomDto, @PathVariable("hotelId") Long hotelId) {
         log.info("register new roomDto in hotel {}", roomDto);
-        Optional<Hotel> hotel = hotelRepository.findOne(roomDto.getHotelId());
+        Optional<Hotel> hotel = hotelRepository.findOne(hotelId);
         if (hotel.isPresent()) {
             hotel.get().getRoomList().add(roomAssembler.entity(roomDto));
         } else {
-            throw new HotelEntityNotFoundException(roomDto.getHotelId());
+            throw new HotelEntityNotFoundException(hotelId);
         }
     }
 
-    @RequestMapping(value = "/room/{id}/status/{status}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{hotelId}/room/{id}/status/{status}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
-    public void changeRoomStatus(@PathVariable("id") Long roomId, @PathVariable("status") Integer status) {
+    public void changeRoomStatus(@PathVariable("id") Long roomId, @PathVariable("status") Integer status, @PathVariable("hotelId") Long hotelId) {
         log.info("update room status {}", roomId);
         Optional<Room> room = hotelRepository.findRoomById(roomId);
         if (room.isPresent()) {
             room.get().setRoomStatus(RoomStatus.find(status));
         } else {
-            throw new RoomEntityNotFoundException(roomId);
+            throw new StatusNotFoundException();
         }
     }
 

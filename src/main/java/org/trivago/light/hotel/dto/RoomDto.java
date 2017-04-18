@@ -17,12 +17,17 @@ public class RoomDto {
 
     @NotNull
     BigDecimal price;
+
     @NotEmpty
     private String name;
+
     @NotNull
     private Integer size;
+
     @NotNull
     private Integer floor;
-    @NotNull
-    private Long hotelId;
+
+    private String roomStatus;
+
+    private Long id;
 }

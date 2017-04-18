@@ -29,4 +29,11 @@ public class CustomerController {
         customerRepository.save(customerAssembler.entity(customerDto));
     }
 
+    @RequestMapping(value = "/email/{email}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    void findCustomerByEmail(@Valid @PathVariable String email) {
+        log.info("looking for customer via email {} ", email);
+        customerRepository.findByEmail(email);
+    }
+
 }

@@ -10,6 +10,8 @@ import org.trivago.light.AbstractAcceptanceTest;
 import org.trivago.light.hotel.dto.HotelDto;
 import org.trivago.light.hotel.dto.RoomDto;
 
+import java.math.BigDecimal;
+
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 
@@ -23,13 +25,13 @@ public class RoomRegisterAcceptanceTest extends AbstractAcceptanceTest {
 
         Integer hotelId = getHotelId();
 
-        RoomDto roomDto = RoomDto.builder().floor(1).name("1").size(2).hotelId(hotelId.longValue()).build();
+        RoomDto roomDto = RoomDto.builder().floor(1).name("1").size(2).price(new BigDecimal(43)).build();
 
         given()
                 .body(objectMapper.writeValueAsString(roomDto))
                 .contentType(ContentType.JSON)
                 .when()
-                .post("/hotel/room")
+                .post("/hotel/" + hotelId + "/room")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
@@ -39,13 +41,13 @@ public class RoomRegisterAcceptanceTest extends AbstractAcceptanceTest {
     public void shouldGet400WhenHotelNotExists() throws JsonProcessingException {
         Integer hotelId = 9393923; //not exist hotel id
 
-        RoomDto roomDto = RoomDto.builder().floor(1).name("1").size(2).hotelId(hotelId.longValue()).build();
+        RoomDto roomDto = RoomDto.builder().floor(1).name("1").size(2).build();
 
         given()
                 .body(objectMapper.writeValueAsString(roomDto))
                 .contentType(ContentType.JSON)
                 .when()
-                .post("/hotel/room")
+                .post("/hotel/" + hotelId + "/room")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
@@ -54,33 +56,33 @@ public class RoomRegisterAcceptanceTest extends AbstractAcceptanceTest {
     public void shouldGet400WhenRequestDataIsNotComplete() throws JsonProcessingException {
         Integer hotelId = getHotelId();
 
-        RoomDto roomDto = RoomDto.builder().name("1").size(2).hotelId(hotelId.longValue()).build();
+        RoomDto roomDto = RoomDto.builder().name("1").size(2).build();
 
         given()
                 .body(objectMapper.writeValueAsString(roomDto))
                 .contentType(ContentType.JSON)
                 .when()
-                .post("/hotel/room")
+                .post("/hotel/" + hotelId + "/room")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
 
-        roomDto = RoomDto.builder().name("1").floor(2).hotelId(hotelId.longValue()).build();
+        roomDto = RoomDto.builder().name("1").floor(2).build();
 
         given()
                 .body(objectMapper.writeValueAsString(roomDto))
                 .contentType(ContentType.JSON)
                 .when()
-                .post("/hotel/room")
+                .post("/hotel/" + hotelId + "/room")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
 
-        roomDto = RoomDto.builder().floor(1).size(2).hotelId(hotelId.longValue()).build();
+        roomDto = RoomDto.builder().floor(1).size(2).build();
 
         given()
                 .body(objectMapper.writeValueAsString(roomDto))
                 .contentType(ContentType.JSON)
                 .when()
-                .post("/hotel/room")
+                .post("/hotel/" + hotelId + "/room")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
 
@@ -90,7 +92,7 @@ public class RoomRegisterAcceptanceTest extends AbstractAcceptanceTest {
                 .body(objectMapper.writeValueAsString(roomDto))
                 .contentType(ContentType.JSON)
                 .when()
-                .post("/hotel/room")
+                .post("/hotel/" + hotelId + "/room")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
@@ -111,7 +113,6 @@ public class RoomRegisterAcceptanceTest extends AbstractAcceptanceTest {
                 .post("/hotel/")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-//                .header(HttpHeaders.LOCATION, n)
                 .extract()
                 .response();
 
