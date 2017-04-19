@@ -2,17 +2,14 @@ package org.trivago.light.reservation.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Response;
-import org.springframework.http.HttpHeaders;
 import org.trivago.light.AbstractAcceptanceTest;
 import org.trivago.light.customer.dto.CustomerDto;
-import org.trivago.light.hotel.dto.HotelDto;
 import org.trivago.light.hotel.dto.RoomDto;
 import org.trivago.light.reservation.dto.RoomReservationDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
@@ -48,26 +45,26 @@ public abstract class AbstractCustomerRoomReservationAcceptanceTest extends Abst
         return get("/customer/email/mu@gmail.com").andReturn().path("id");
     }
 
-    private Integer findRoomReadyToBook() {
+    private Integer findRoomReadyToBook(Long hotelId) {
         LocalDate now = LocalDate.now();
         LocalDate nowPlus2 = now.plusDays(2);
 
-        return get("/hotel/room/search?dateFrom=" + now.format(DateTimeFormatter.ISO_LOCAL_DATE) + "&dateTo=" + nowPlus2.format(DateTimeFormatter.ISO_LOCAL_DATE))
-                .andReturn().path("[0].id");
+        return get("/hotel/" + hotelId + "/room").andReturn().path("[0].id");
     }
 
-    protected RoomReservationDto getRoomReservationDto() throws JsonProcessingException {
-        Integer customerId = addTestCustomer();
-        Integer id = addHotel();
-        addRoom(id.longValue());
+    protected RoomReservationDto getRoomReservationDto(Optional<Long> id) throws JsonProcessingException {
+        Long customerId = id.orElse(addTestCustomer().longValue());
 
-        Integer roomId = findRoomReadyToBook();
+        Integer hotelId = addHotel();
+        addRoom(hotelId.longValue());
+
+        Integer roomId = findRoomReadyToBook(hotelId.longValue());
 
         return RoomReservationDto
                 .builder()
                 .roomId(roomId.longValue())
                 .hotelId(addHotel().longValue())
-                .customerId(customerId.longValue())
+                .customerId(customerId)
                 .dateFrom(LocalDate.now())
                 .dateTo(LocalDate.now().plusDays(2))
                 .build();

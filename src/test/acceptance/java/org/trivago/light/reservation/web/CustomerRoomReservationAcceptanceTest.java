@@ -7,10 +7,8 @@ import org.junit.Test;
 import org.trivago.light.hotel.domain.RoomStatus;
 import org.trivago.light.reservation.dto.RoomReservationDto;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
-import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
@@ -18,7 +16,7 @@ public class CustomerRoomReservationAcceptanceTest extends AbstractCustomerRoomR
 
     @Test
     public void shouldReserveRoomWhenAvailable() throws JsonProcessingException {
-        RoomReservationDto roomReservationDto = getRoomReservationDto();
+        RoomReservationDto roomReservationDto = getRoomReservationDto(Optional.empty());
 
         given()
                 .body(objectMapper.writeValueAsString(roomReservationDto))
@@ -30,8 +28,6 @@ public class CustomerRoomReservationAcceptanceTest extends AbstractCustomerRoomR
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .body(objectMapper.writeValueAsString(roomReservationDto))
-                .contentType(ContentType.JSON)
                 .pathParam("customerId", roomReservationDto.getCustomerId())
         .when()
                 .get("/customer/{customerId}/reservation")
@@ -42,7 +38,7 @@ public class CustomerRoomReservationAcceptanceTest extends AbstractCustomerRoomR
 
     @Test
     public void shouldGet400WhenRoomAlreadyReserved() throws JsonProcessingException {
-        RoomReservationDto roomReservationDto = getRoomReservationDto();
+        RoomReservationDto roomReservationDto = getRoomReservationDto(Optional.empty());
 
         given()
                 .body(objectMapper.writeValueAsString(roomReservationDto))
@@ -54,8 +50,6 @@ public class CustomerRoomReservationAcceptanceTest extends AbstractCustomerRoomR
                 .statusCode(HttpStatus.SC_CREATED);
 
         given()
-                .body(objectMapper.writeValueAsString(roomReservationDto))
-                .contentType(ContentType.JSON)
                 .pathParam("customerId", roomReservationDto.getCustomerId())
                 .when()
                 .get("/customer/{customerId}/reservation")
@@ -75,7 +69,7 @@ public class CustomerRoomReservationAcceptanceTest extends AbstractCustomerRoomR
 
     @Test
     public void shouldGet400ReserveRoomIsOutOfOrder() throws JsonProcessingException {
-        RoomReservationDto roomReservationDto = getRoomReservationDto();
+        RoomReservationDto roomReservationDto = getRoomReservationDto(Optional.empty());
 
         given()
                 .contentType(ContentType.JSON)

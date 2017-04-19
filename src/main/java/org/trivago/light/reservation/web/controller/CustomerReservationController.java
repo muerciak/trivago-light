@@ -67,6 +67,7 @@ public class CustomerReservationController {
         List<CustomerRoomReservation> roomReservation = reservationRepository.findByCustomerId(userId);
         return roomReservation
                 .stream()
+                .filter(res -> !res.getStatus().equals(ReservationStatus.CANCEL))
                 .map(customerRoomReservationAssembler::dto)
                 .collect(toList());
     }
