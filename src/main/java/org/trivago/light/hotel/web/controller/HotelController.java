@@ -19,11 +19,16 @@ import org.trivago.light.hotel.dto.HotelDto;
 import org.trivago.light.hotel.dto.RoomDto;
 import org.trivago.light.hotel.repository.HotelRepository;
 import org.trivago.light.hotel.web.exception.HotelEntityNotFoundException;
+import org.trivago.light.hotel.web.exception.RoomEntityNotFoundException;
 import org.trivago.light.hotel.web.exception.StatusNotFoundException;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.*;
 
 @RestController
 @RequestMapping("/hotel")
@@ -70,7 +75,10 @@ public class HotelController {
         log.info("register new roomDto in hotel {}", roomDto);
         Optional<Hotel> hotel = hotelRepository.findOne(hotelId);
         if (hotel.isPresent()) {
-            hotel.get().getRoomList().add(roomAssembler.entity(roomDto));
+            Room room = roomAssembler.entity(roomDto);
+            room.setHotel(hotel.get());
+            room.setRoomStatus(RoomStatus.READY_FOR_ORDER);
+            hotel.get().getRoomList().add(room);
         } else {
             throw new HotelEntityNotFoundException(hotelId);
         }
@@ -84,8 +92,19 @@ public class HotelController {
         if (room.isPresent()) {
             room.get().setRoomStatus(RoomStatus.find(status));
         } else {
-            throw new StatusNotFoundException();
+            throw new RoomEntityNotFoundException();
         }
     }
 
+    @RequestMapping(value = "/{hotelId}/room", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public List<RoomDto> getRoomList(@PathVariable("hotelId") Long hotelId) {
+        log.info("looking for hotel {}", hotelId);
+        Optional<Hotel> hotel = hotelRepository.findOne(hotelId);
+        if (hotel.isPresent()) {
+            return hotel.get().getRoomList().stream().map(roomAssembler::dto).collect(toList());
+        } else {
+            throw new HotelEntityNotFoundException(hotelId);
+        }
+    }
 }

@@ -6,7 +6,7 @@ public enum RoomStatus {
 
     READY_FOR_ORDER(0), OUT_OF_ORDER(1);
 
-    private Integer status;
+    public Integer status;
 
     RoomStatus(Integer status) {
         this.status = status;

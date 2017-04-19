@@ -30,4 +30,5 @@ public class RoomDto {
     private String roomStatus;
 
     private Long id;
+
 }

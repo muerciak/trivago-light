@@ -2,48 +2,99 @@ package org.trivago.light.reservation.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.restassured.http.ContentType;
+import org.apache.http.HttpStatus;
 import org.junit.Test;
+import org.trivago.light.hotel.domain.RoomStatus;
 import org.trivago.light.reservation.dto.RoomReservationDto;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.is;
 
 public class CustomerRoomReservationAcceptanceTest extends AbstractCustomerRoomReservationAcceptanceTest {
 
     @Test
-    public void test() throws JsonProcessingException {
-        addTestCustomer();
-        Integer id = addHotel();
-        addRoom(id.longValue());
-
-        LocalDate now = LocalDate.now();
-        LocalDate nowPlus2 = now.plusDays(2);
-
-        String jsonString = given()
-                .when()
-                .get("/hotel/room/search?dateFrom=" + now.format(DateTimeFormatter.ISO_LOCAL_DATE) + "&dateTo=" + nowPlus2.format(DateTimeFormatter.ISO_LOCAL_DATE))
-                .then()
-                .extract()
-                .response().getBody().asString();
-
-
-        RoomReservationDto roomReservationDto = RoomReservationDto
-                .builder()
-                .roomId(1L)
-                .hotelId(1L)
-                .customerId(1L)
-                .dateFrom(LocalDate.now())
-                .dateTo(LocalDate.now().plusDays(2))
-                .build();
+    public void shouldReserveRoomWhenAvailable() throws JsonProcessingException {
+        RoomReservationDto roomReservationDto = getRoomReservationDto();
 
         given()
                 .body(objectMapper.writeValueAsString(roomReservationDto))
                 .contentType(ContentType.JSON)
-                .when()
-                .post("/customer/reservation");
+                .pathParam("customerId", roomReservationDto.getCustomerId())
+        .when()
+                .post("/customer/{customerId}/reservation")
+        .then()
+                .statusCode(HttpStatus.SC_CREATED);
 
+        given()
+                .body(objectMapper.writeValueAsString(roomReservationDto))
+                .contentType(ContentType.JSON)
+                .pathParam("customerId", roomReservationDto.getCustomerId())
+        .when()
+                .get("/customer/{customerId}/reservation")
+        .then()
+                .body("size()", is(1));
+
+    }
+
+    @Test
+    public void shouldGet400WhenRoomAlreadyReserved() throws JsonProcessingException {
+        RoomReservationDto roomReservationDto = getRoomReservationDto();
+
+        given()
+                .body(objectMapper.writeValueAsString(roomReservationDto))
+                .contentType(ContentType.JSON)
+                .pathParam("customerId", roomReservationDto.getCustomerId())
+                .when()
+                .post("/customer/{customerId}/reservation")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        given()
+                .body(objectMapper.writeValueAsString(roomReservationDto))
+                .contentType(ContentType.JSON)
+                .pathParam("customerId", roomReservationDto.getCustomerId())
+                .when()
+                .get("/customer/{customerId}/reservation")
+                .then()
+                .body("size()", is(1));
+
+        given()
+                .body(objectMapper.writeValueAsString(roomReservationDto))
+                .contentType(ContentType.JSON)
+                .pathParam("customerId", roomReservationDto.getCustomerId())
+        .when()
+                .post("/customer/{customerId}/reservation")
+        .then()
+                .statusCode(HttpStatus.SC_CONFLICT);
+
+    }
+
+    @Test
+    public void shouldGet400ReserveRoomIsOutOfOrder() throws JsonProcessingException {
+        RoomReservationDto roomReservationDto = getRoomReservationDto();
+
+        given()
+                .contentType(ContentType.JSON)
+                .pathParam("hotelId", roomReservationDto.getHotelId())
+                .pathParam("id", roomReservationDto.getRoomId())
+                .pathParam("status", RoomStatus.OUT_OF_ORDER.status)
+        .when()
+                .put("/hotel/{hotelId}/room/{id}/status/{status}")
+        .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        given()
+                .body(objectMapper.writeValueAsString(roomReservationDto))
+                .contentType(ContentType.JSON)
+                .pathParam("customerId", roomReservationDto.getCustomerId())
+                .when()
+        .post("/customer/{customerId}/reservation")
+                .then()
+        .statusCode(HttpStatus.SC_BAD_REQUEST);
 
     }
 

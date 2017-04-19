@@ -29,7 +29,6 @@ public class RoomReservationDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateTo;
 
-    @NotEmpty
     private Long customerId;
 
 }

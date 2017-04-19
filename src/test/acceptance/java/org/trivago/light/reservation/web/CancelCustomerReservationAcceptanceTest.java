@@ -8,32 +8,42 @@ import org.trivago.light.reservation.dto.RoomReservationDto;
 
 import java.time.LocalDate;
 
+import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.is;
 
 public class CancelCustomerReservationAcceptanceTest extends AbstractCustomerRoomReservationAcceptanceTest {
 
     @Test
-    public void test() throws JsonProcessingException {
-        addTestCustomer();
-        Integer id = addHotel();
-        addRoom(id.longValue());
-        RoomReservationDto roomReservationDto = RoomReservationDto
-                .builder()
-                .roomId(1L)
-                .hotelId(1L)
-                .customerId(1L)
-                .dateFrom(LocalDate.now())
-                .dateTo(LocalDate.now().plusDays(2))
-                .build();
+    public void shodCancelReservation() throws JsonProcessingException {
+        RoomReservationDto roomReservationDto = getRoomReservationDto();
 
         given()
-                .body(objectMapper.writeValueAsString(roomReservationDto))
-                .contentType(ContentType.JSON)
-                .when()
-                .post("/customer/reservation")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED);
+            .body(objectMapper.writeValueAsString(roomReservationDto))
+            .contentType(ContentType.JSON)
+            .pathParam("customerId", roomReservationDto.getCustomerId())
+        .when()
+            .post("/customer/{customerId}/reservation")
+        .then()
+            .statusCode(HttpStatus.SC_CREATED);
 
+        Integer id = get("/customer/"+roomReservationDto.getCustomerId()+"/reservation").andReturn().path("[0].id");
 
+        given()
+            .pathParam("resId", id)
+        .when()
+            .put("/customer/reservation/{resId}/cancel")
+        .then()
+            .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void shodGet404WhenReservationToCancelNotFound() throws JsonProcessingException {
+        given()
+            .pathParam("resId", 1)
+        .when()
+            .put("/customer/reservation/{resId}/cancel")
+        .then()
+            .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 }

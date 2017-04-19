@@ -21,7 +21,7 @@ public class HotelControllerAdvice {
     public void handleRoomNotFoundException() {
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(StatusNotFoundException.class)
     public void handleStatusNotFoundException() {
     }

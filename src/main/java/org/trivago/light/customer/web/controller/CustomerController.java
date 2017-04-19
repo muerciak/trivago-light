@@ -6,10 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.trivago.light.customer.assembler.CustomerAssembler;
+import org.trivago.light.customer.domain.Customer;
 import org.trivago.light.customer.dto.CustomerDto;
 import org.trivago.light.customer.repository.CustomerRepository;
+import org.trivago.light.customer.web.exception.CustomerNotFoundException;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/customer")
@@ -29,11 +32,17 @@ public class CustomerController {
         customerRepository.save(customerAssembler.entity(customerDto));
     }
 
-    @RequestMapping(value = "/email/{email}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/email/{email:.+}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    void findCustomerByEmail(@Valid @PathVariable String email) {
+    public CustomerDto findCustomerByEmail(@Valid @PathVariable String email) {
         log.info("looking for customer via email {} ", email);
-        customerRepository.findByEmail(email);
+        Optional<Customer> customer = customerRepository.findByEmail(email);
+        if (customer.isPresent()) {
+            return customerAssembler.dto(customer.get());
+        } else {
+            throw new CustomerNotFoundException();
+        }
+
     }
 
 }
