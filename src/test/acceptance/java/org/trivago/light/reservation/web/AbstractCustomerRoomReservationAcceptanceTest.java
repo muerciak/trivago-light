@@ -3,7 +3,6 @@ package org.trivago.light.reservation.web;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.restassured.http.ContentType;
 import org.trivago.light.AbstractAcceptanceTest;
-import org.trivago.light.customer.dto.CustomerDto;
 import org.trivago.light.hotel.dto.RoomDto;
 import org.trivago.light.reservation.dto.RoomReservationDto;
 
@@ -27,23 +26,7 @@ public abstract class AbstractCustomerRoomReservationAcceptanceTest extends Abst
 
 
 
-    protected Integer addTestCustomer() throws JsonProcessingException {
-        CustomerDto dto = CustomerDto
-                .builder()
-                .city("w")
-                .country("a")
-                .email("mu@gmail.com")
-                .firstName("z")
-                .lastName("aa").build();
 
-        given()
-                .body(objectMapper.writeValueAsString(dto))
-                .contentType(ContentType.JSON)
-                .when()
-                .post("/customer/");
-
-        return get("/customer/email/mu@gmail.com").andReturn().path("id");
-    }
 
     private Integer findRoomReadyToBook(Long hotelId) {
         LocalDate now = LocalDate.now();

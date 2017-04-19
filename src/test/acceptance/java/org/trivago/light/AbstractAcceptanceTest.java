@@ -16,6 +16,7 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.trivago.light.customer.dto.CustomerDto;
 import org.trivago.light.hotel.dto.HotelDto;
 import org.trivago.light.hotel.dto.RoomDto;
 
@@ -75,4 +76,21 @@ public abstract class AbstractAcceptanceTest {
         return get("/hotel/" +hotelId+ "/room").andReturn().path("[0].id");
     }
 
+    protected Integer addTestCustomer() throws JsonProcessingException {
+        CustomerDto dto = CustomerDto
+                .builder()
+                .city("w")
+                .country("a")
+                .email("mu@gmail.com")
+                .firstName("z")
+                .lastName("aa").build();
+
+        given()
+                .body(objectMapper.writeValueAsString(dto))
+                .contentType(ContentType.JSON)
+                .when()
+                .post("/customer/");
+
+        return get("/customer/email/mu@gmail.com").andReturn().path("id");
+    }
 }
