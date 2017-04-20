@@ -24,7 +24,8 @@ public class SearchAvailableRoomRepositoryImpl implements SearchAvailableRoomRep
     @Override
     public List<Room> findAvailableRoomsAndPriceRangeAndCity(LocalDate dateFrom, LocalDate dateTo, Optional<String> city, Optional<BigDecimal> priceFrom, Optional<BigDecimal> priceTo) {
         String queryStr = "select r from " +
-                "Room r join r.hotel h where r.roomStatus = 0 and r not in (select res.room from CustomerRoomReservation res where (:dateTo <= res.dateFrom or :dateFrom >= res.dateTo))";
+                "Room r join r.hotel h where r.roomStatus = 0 and r not in (select res.room from CustomerRoomReservation res where res.status = 1 and " +
+                "((:dateFrom >= res.dateFrom or :dateFrom <= res.dateTo) OR (:dateTo >= res.dateFrom or :dateTo <= res.dateTo)) )";
         Map<String, Object> params = new HashMap<String, Object>();
 
         if (city.isPresent()) {
